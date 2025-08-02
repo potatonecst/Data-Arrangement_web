@@ -2,32 +2,37 @@ import { useRef, type ChangeEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { IconFileSearch } from "@tabler/icons-react";
 
 type SelectFileProps = {
     id: string;
+    name: string
     labelName: string;
     currentFilename: string;
-    sendFilename: (s: string) => void;
+    sendFilename: (s1: string, s2: string) => void;
 }
 
-export default function SelectFile({id, labelName, currentFilename, sendFilename}: SelectFileProps) {
+export default function SelectFile({id, name, labelName, currentFilename, sendFilename}: SelectFileProps) {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const handleFilename = (e: ChangeEvent<HTMLInputElement>) => {
         const files = e.target.files;
         const file = files?.item(0)
         if (file) {
-            sendFilename(file.name);
+            sendFilename(e.target.name, file.name);
         }
     }
-    const handleBrowseClick = () => {
+    const handleVisibleFileInput = (e: ChangeEvent<HTMLInputElement>) => {
+        sendFilename(e.target.name, e.target.value);
+    }
+    const handleBrowseFileClick = () => {
         fileInputRef.current?.click();
     }
     return (
-        <div className="flex w-full max-w-sm items-center gap-2 py-0.5">
-            <Label htmlFor={id} className="basis-1/5">{labelName}</Label>
-            <input type="file" ref={fileInputRef} onChange={handleFilename} className="hidden" />
-            <Input id={id} value={currentFilename} className="basis-3/5" />
-            <Button variant="outline" onClick={handleBrowseClick} className="basis-1/5">Browse...</Button>
-        </div>
+        <>
+            <Label htmlFor={id}>{labelName}</Label>
+            <input type="file" name={name} ref={fileInputRef} onChange={handleFilename} className="hidden" />
+            <Input id={id} name={name} value={currentFilename} onChange={handleVisibleFileInput} />
+            <Button variant="outline" onClick={handleBrowseFileClick}><IconFileSearch />Browse...</Button>
+        </>
     )
 }

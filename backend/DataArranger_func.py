@@ -1,8 +1,9 @@
 import numpy as np
+from scipy.optimize import curve_fit
 #import matplotlib.pyplot as plt
 from HybridModeSolverRevised import CalcHEMode
 from PolarizationCalculationRevised import CalcPolarizationFDTD
-
+"""
 class fileReading:
     def __init__(self, filePath): #初期化
         self.fPath = filePath
@@ -15,7 +16,7 @@ class fileReading:
     
     def readBetween(self, startLine, endLine): #1行目は1として指定、endLineは含まない
         return self.lines[startLine - 1:endLine-1]
-
+"""
 def divideStr(arr): #スペースで文字列を分割
     arr = [line.split() for line in arr]
     return arr
@@ -49,15 +50,16 @@ class Arranger:
         self.divNo = 201
         self.simpleSim = 0
         self.alpha = 0
-        self.monitorSide = 1 #1 -> opposite, 0 -> same
+        self.fitting = 0
+        self.initialAlpha = 0
         self.Es_real_name = "Es_real.txt"
         self.Es_imag_name = "Es_imag.txt"
         self.Ep_real_name = "Ep_real.txt"
         self.Ep_imag_name = "Ep_imag.txt"
-    
+    """
     def setFolderPath(self, folderPath):
         self.folderPath = folderPath
-
+    """
     def setDivisionNo(self, divNo): #settings項目
         self.divNo = divNo
     
@@ -67,9 +69,7 @@ class Arranger:
     def setAlpha(self, alpha):
         self.alpha = alpha
     
-    def setMonitorSide(self, monitorSide):
-        self.monitorSide = monitorSide
-
+    """
     def setFileName(self, fileName, EComponentVar): #settings項目
         if EComponentVar == "EsReal":
             self.Es_real_name = fileName
@@ -85,10 +85,17 @@ class Arranger:
         self.EsFile_imag = fileReading(self.folderPath + "/" + self.Es_imag_name)
         self.EpFile_real = fileReading(self.folderPath + "/" + self.Ep_real_name)
         self.EpFile_imag = fileReading(self.folderPath + "/" + self.Ep_imag_name)
+        """
+    def inputData(self, EsReal_txt: str, EsImag_txt: str, EpReal_txt: str, EpImag_txt: str):
+        #1行ずつlistに格納(\nは削除)
+        self.EsFile_real = EsReal_txt.splitlines()
+        self.EsFile_imag = EsImag_txt.splitlines()
+        self.EpFile_real = EpReal_txt.splitlines()
+        self.EpFile_imag = EpImag_txt.splitlines()
     
     def extractData(self):
-        self.uz = np.array(str2Float(self.EpFile_real.readBetween(4, 4 + self.divNo)))
-        self.uy = np.array(str2Float(self.EpFile_real.readBetween(6 + self.divNo, 6 + 2 * self.divNo)))
+        self.uz = np.array(str2Float(self.EpFile_real[3:3 + self.divNo]))
+        self.uy = np.array(str2Float(self.EpFile_real[5 + self.divNo:5 + 2 * self.divNo]))
         self.xp = self.uy #モニターを通過した光が進む方向をr(z)とする座標系のx座標配列
         self.yp = - self.uz #同じくy座標配列
         self.xpMesh, self.ypMesh = np.meshgrid(self.xp, self.yp) #上記の配列から(x, y)座標の組を生成
@@ -99,12 +106,12 @@ class Arranger:
         self.Phi = np.arctan2(self.ypMesh, self.xpMesh) #arctan(self.yp / self.xp)で、self.xpとself.ypが同時に0になる時、0を返す
         print(self.Theta, self.Phi)
         
-        self.Es_real = np.array(str2FloatArr(divideStr(self.EsFile_real.readBetween(8 + 2 * self.divNo, 8 + 3 * self.divNo))))
-        self.Es_imag = np.array(str2FloatArr(divideStr(self.EsFile_imag.readBetween(8 + 2 * self.divNo, 8 + 3 * self.divNo))))
+        self.Es_real = np.array(str2FloatArr(divideStr(self.EsFile_real[7 + 2 * self.divNo:7 + 3 * self.divNo])))
+        self.Es_imag = np.array(str2FloatArr(divideStr(self.EsFile_imag[7 + 2 * self.divNo:7 + 3 * self.divNo])))
         self.Es = np.array(self.Es_real + 1j * self.Es_imag).T[::-1, :]
         
-        self.Ep_real = np.array(str2FloatArr(divideStr(self.EpFile_real.readBetween(8 + 2 * self.divNo, 8 + 3 * self.divNo))))
-        self.Ep_imag = np.array(str2FloatArr(divideStr(self.EpFile_imag.readBetween(8 + 2 * self.divNo, 8 + 3 * self.divNo))))
+        self.Ep_real = np.array(str2FloatArr(divideStr(self.EpFile_real[7 + 2 * self.divNo:7 + 3 * self.divNo])))
+        self.Ep_imag = np.array(str2FloatArr(divideStr(self.EpFile_imag[7 + 2 * self.divNo:7 + 3 * self.divNo])))
         self.Ep = np.array(self.Ep_real + 1j * self.Ep_imag).T[::-1, :]
     
     def calcState(self, Ey, Ez):
@@ -131,9 +138,20 @@ class Arranger:
         
         return self.s1FDTD, self.s2FDTD, self.s3FDTD, self.theta, self.IFDTD
     
-    def simpleSimulations(self):
-        #propDir = not self.monitorSide により、sameの場合はpropDirが反転する
-        self.ExSim, self.EySim, self.EzSim = CalcHEMode(self.a, self.nco, self.ncl, self.n, self.l, self.lam, self.psi, self.R, np.deg2rad(self.alpha), not self.monitorSide)
+    def simpleSimulations(self, alpha):
+        self.ExSim, self.EySim, self.EzSim = CalcHEMode(self.a, self.nco, self.ncl, self.n, self.l, self.lam, self.psi, self.R, np.deg2rad(alpha), 0) #propDir = 0
         self.s1Sim, self.s2Sim, self.s3Sim, self.ISim = self.calcState(self.EySim, self.EzSim)
         
         return self.s1Sim, self.s2Sim, self.s3Sim, self.theta, self.ISim
+    
+    def simulationModelForFitting(self, theta, alpha):
+        _, EySim, EzSim = CalcHEMode(self.a, self.nco, self.ncl, self.n, self.l, self.lam, self.psi, self.R, alpha, 0) #alpha -> radian
+        _, _, _, ISim = self.calcState(EySim, EzSim)
+        return ISim
+    
+    def findBestFit(self, iniAlpha):
+        targetIntensity = self.IFDTD
+        popt, pcov = curve_fit(self.simulationModelForFitting, self.theta, targetIntensity, p0=[np.deg2rad(iniAlpha)], bounds=(-np.pi, np.pi))
+        bestAlpha = np.rad2deg(popt[0])
+        return bestAlpha
+        

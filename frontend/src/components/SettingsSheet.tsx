@@ -15,16 +15,33 @@ import { Sheet,
 import { IconSettings } from "@tabler/icons-react"
 import SelectFile from "./SelectFile";
 
-export default function SettingsSheet() {
-    const [divNo, setDivNo] = useState<number>(201);
-    const [filenames, setFilenames] = useState<Array<string>>(["Es_real.txt", "Es_imag.txt", "Ep_real.txt", "Ep_imag.txt"]);
-    const handleDivNoChange = (e: ChangeEvent<HTMLInputElement>) => {
-        setDivNo(Number(e.target.value));
+interface SettingsValues {
+    divNo: number;
+    EsRealName: string;
+    EsImagName: string;
+    EpRealName: string;
+    EpImagName: string;
+}
+
+interface SettingsSheetProps {
+    currentValues: SettingsValues;
+    sendCurrentValues: (arr: SettingsValues) => void;
+}
+
+export default function SettingsSheet({ currentValues, sendCurrentValues }: SettingsSheetProps) {
+    const [temporaryValues, setTemporaryValues] = useState(currentValues);
+    const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
+        const { name, value } = e.target;
+        setTemporaryValues(current => ({...current, [name]: value}));
     }
-    const updateFilenames = (i: number, newFilename: string) => {
-        const newFilenames = [...filenames]
-        newFilenames[i] = newFilename;
-        setFilenames(newFilenames);
+    const handleFilename = (name: string, filename: string) => {
+        setTemporaryValues(current => ({...current, [name]: filename}))
+    }
+    const updateCurrentValues = () => {
+        sendCurrentValues(temporaryValues);
+    }
+    const cancelChange = () => {
+        setTemporaryValues(currentValues);
     }
     return (
         <Sheet>
@@ -45,21 +62,25 @@ export default function SettingsSheet() {
                 <div className="grid flex-1 auto-rows-min gap-6 px-4">
                     <div>
                         <Label htmlFor="divNo" className="pb-4">Division No.</Label>
-                        <Input id="divNo" type="number" value={divNo} min="1" step="1" onChange={handleDivNoChange} />
+                        <Input id="divNo" type="number" name="divNo" value={temporaryValues.divNo} min="1" step="1" onChange={handleChange} />
                     </div>
                     <Separator />
                     <div>
                         <Label className="pb-4">Filename</Label>
-                        <SelectFile id="esReal" labelName="Es_real" currentFilename={filenames[0]} sendFilename={(newFilename: string) => updateFilenames(0, newFilename)} />
-                        <SelectFile id="esImag" labelName="Es_imag" currentFilename={filenames[1]} sendFilename={(newFilename: string) => updateFilenames(1, newFilename)} />
-                        <SelectFile id="epReal" labelName="Ep_real" currentFilename={filenames[2]} sendFilename={(newFilename: string) => updateFilenames(2, newFilename)} />
-                        <SelectFile id="epImag" labelName="Ep_imag" currentFilename={filenames[3]} sendFilename={(newFilename: string) => updateFilenames(3, newFilename)} />
+                        <div className="grid grid-cols-[auto_1fr_auto] items-center gap-x-2 gap-y-1">
+                            <SelectFile id="esReal" name={"EsRealName"} labelName="Es_real" currentFilename={temporaryValues.EsRealName} sendFilename={handleFilename} />
+                            <SelectFile id="esImag" name={"EsImagName"} labelName="Es_imag" currentFilename={temporaryValues.EsImagName} sendFilename={handleFilename} />
+                            <SelectFile id="epReal" name={"EpRealName"} labelName="Ep_real" currentFilename={temporaryValues.EpRealName} sendFilename={handleFilename} />
+                            <SelectFile id="epImag" name={"EpImagName"} labelName="Ep_imag" currentFilename={temporaryValues.EpImagName} sendFilename={handleFilename} />
+                        </div>
                     </div>
                 </div>
                 <SheetFooter>
-                    <Button>Apply</Button>
                     <SheetClose asChild>
-                        <Button variant="outline">Cancel</Button>
+                        <Button onClick={updateCurrentValues}>Apply</Button>
+                    </SheetClose>
+                    <SheetClose asChild>
+                        <Button variant="outline" onClick={cancelChange}>Cancel</Button>
                     </SheetClose>
                 </SheetFooter>
             </SheetContent>
