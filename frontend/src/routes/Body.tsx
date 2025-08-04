@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 
 import { IconFolderSearch } from '@tabler/icons-react';
 import { IconPlayerPlayFilled } from '@tabler/icons-react';
@@ -16,6 +17,7 @@ import { API_BASE_URL } from '@/config';
 
 import LineChart from '@/components/LineChart';
 import PoincareChart from '@/components/PoincareChart';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface FileContents {
     [key: string]: string;
@@ -66,6 +68,7 @@ export interface Result {
     simpleSim: SimpleSimResult | null;
     fitting: FittingResult | null;
 }
+type ImageFormat = "png" | "svg" | "jpeg" | "webp";
 export default function Body() {
     const folderInputRef = useRef<HTMLInputElement>(null)
     const {settingsValue, initialValues} = useOutletContext<AppContext>(); //設定項目
@@ -76,6 +79,7 @@ export default function Body() {
     const [fileContents, setFileContents] = useState<FileContents | null>(null) //テキストファイル文字列
     const [currentValues, setCurrentValues] = useState<Values>(initialValues); //設定項目以外の値
     const [calculationResult, setCalculationResult] = useState(null);
+    const [saveFormat, setSaveFormat] = useState<ImageFormat>("png");
 
     useEffect(() => {
         console.log("State has been updated: ", fileContents);
@@ -101,19 +105,32 @@ export default function Body() {
         setIsReading(true);
         setFileContents(null);
         try{
-            console.log("Step1: Folder has been selected.");
+            console.log("Step1: Folder has been selected.\n Start arranging.");
             const requiredFilesName = [settingsValue.EsRealName, settingsValue.EsImagName, settingsValue.EpRealName, settingsValue.EpImagName]
+
+            const filesToRead = Array.from(files).filter(file => requiredFilesName.includes(file.name));
+
+            if (filesToRead.length < requiredFilesName.length) {
+                throw new Error("Required files are missing.\nCheck the folder component.")
+            }
+
+            console.log(`Step2: ${filesToRead.length} required files are found.\nStart reading.`);
+
+            const readPromises = filesToRead.map(file => {
+                console.log(`- Start reading ${file.name}...`);
+                return readFileAsText(file);
+            });
+
+            console.log("Step3: Waiting");
+            const allContents = await Promise.all(readPromises);
+            console.log("Step4: Read all files completed.")
+
             const contents: FileContents = {};
-            for (const file of Array.from(files)) {
-                if (requiredFilesName.includes(file.name)) {
-                    contents[file.name] = await readFileAsText(file);
-                }
-            }
-            if (Object.keys(contents).length < requiredFilesName.length) {
-                throw new Error('Required files are missing.\nCheck the folder component.')
-            }
+            filesToRead.forEach((file, index) => {
+                contents[file.name] = allContents[index];
+            })
             setFileContents(contents);
-            console.log("Input complete");
+            console.log("Step5: Update state completed.");
             setIsError(false);
         } catch (error) {
             setIsError(true)
@@ -185,7 +202,6 @@ export default function Body() {
             }
             const data = await response.json();
             setCalculationResult(data);
-            //setLegendAlpha(currentValues.alpha);
         } catch (err) {
             if (err instanceof Error) {
                 alert(err.message);
@@ -196,11 +212,17 @@ export default function Body() {
             setIsCalculating(false);
         }
     }
+
+    const handleSaveFormat = (newFormat: string) => {
+        if (newFormat) {
+            setSaveFormat(newFormat as ImageFormat);
+        }
+    }
     return (
         <div className='md:pt-5'>
             <div className='md:flex w-full gap-2'>
                 <div className='basis-xl p-1'>
-                    <Label htmlFor="folderSelect" className='text-lg'>Folder Select</Label>
+                    <Label htmlFor="folderSelect" className='text-lg font-bold'>Folder Select</Label>
                     <div className='flex gap-2'>
                         <Input value={folderName} placeholder='Select a folder...' disabled />
                         <Button variant="outline" onClick={handleBrowseFolderClick} disabled={isReading || isCalculating}><IconFolderSearch /><div className='md:hidden xg:block'>Browse...</div></Button>
@@ -212,7 +234,7 @@ export default function Body() {
                 </div>
                 <div className='basis-xl p-1'>
                     <div className='flex items-baseline gap-4'>
-                        <Label htmlFor="simpleSim" className='text-lg whitespace-nowrap'>Simple Simulation</Label>
+                        <Label htmlFor="simpleSim" className='text-lg font-bold whitespace-nowrap'>Simple Simulation</Label>
                         <Switch id="simpleSim" onCheckedChange={handleSimpleSimCheckChange} />
                     </div>
                     <div className='flex items-baseline gap-2'>
@@ -225,7 +247,7 @@ export default function Body() {
                 </div>
                 <div className='basis-xl p-1'>
                     <div className='flex items-baseline gap-4'>
-                        <Label htmlFor="leastSquare" className='text-lg'>Least Squares</Label>
+                        <Label htmlFor="leastSquare" className='text-lg font-bold'>Least Squares</Label>
                         <Switch id="leastSquare" onCheckedChange={handleFittingCheckChange} />
                     </div>
                     <div className='flex gap-2'>
@@ -241,12 +263,41 @@ export default function Body() {
                 </div>
             </div>
             <Separator className='mt-1' />
-            <div className='w-full pt-1'>
-                <Label className='text-lg'>Graph Area</Label>
+            {calculationResult && <div className='w-full pt-1'>
                 <div className='w-full'>
-                    {calculationResult && <LineChart data={calculationResult} />}
+                    <Tabs defaultValue="lineChart">
+                        <div className='md:flex gap-5'>
+                            <Label className='text-lg font-bold whitespace-nowrap'>Graph Area</Label>
+                            <div className="flex justify-between w-full">
+                                <TabsList>
+                                    <TabsTrigger value="lineChart">Line Chart</TabsTrigger>
+                                    <TabsTrigger value="poincareChart">Poincare Chart</TabsTrigger>
+                                </TabsList>
+                                <ToggleGroup type="single" variant="outline" value={saveFormat} onValueChange={handleSaveFormat}>
+                                    <ToggleGroupItem value="png" aria-label='png' asChild>
+                                        <Label>png</Label>
+                                    </ToggleGroupItem>
+                                    <ToggleGroupItem value="svg" aria-label='svg' asChild>
+                                        <Label>svg</Label>
+                                    </ToggleGroupItem>
+                                    <ToggleGroupItem value="jpeg" aria-label='jpeg' asChild>
+                                        <Label>jpeg</Label>
+                                    </ToggleGroupItem>
+                                    <ToggleGroupItem value="webp" aria-label='webp' asChild>
+                                        <Label>webp</Label>
+                                    </ToggleGroupItem>
+                                </ToggleGroup>
+                            </div>
+                        </div>
+                        <TabsContent value="lineChart" className='w-full'>
+                            {calculationResult && <LineChart data={calculationResult} saveFormat={saveFormat} />}
+                        </TabsContent>
+                        <TabsContent value="poincareChart">
+                            {calculationResult && <PoincareChart data={calculationResult} saveFormat={saveFormat} />}
+                        </TabsContent>
+                    </Tabs>
                 </div>
-            </div>
+            </div>}
         </div>
     );
 }

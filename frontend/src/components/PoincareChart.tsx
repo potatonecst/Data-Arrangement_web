@@ -1,13 +1,14 @@
+import { useEffect, useRef, useState } from 'react';
 import Plot from 'react-plotly.js';
-//import Plotly from "plotly.js";
-import type { FDTDResult, SimpleSimResult, Result } from '@/routes/Body';
-import type { Data } from 'plotly.js';
+import Plotly from "plotly.js";
+import type { Result } from '@/routes/Body';
+import type { Data, Layout } from 'plotly.js';
 
 import { Button } from "@/components/ui/button"
 
 interface PlotProps {
     data: Result;
-    alpha: number;
+    saveFormat: "png" | "svg" | "jpeg" | "webp";
 }
 
 const generateSphereData = () => {
@@ -22,7 +23,7 @@ const generateSphereData = () => {
     return { x, y, z }
 }
 
-export default function PoincareChart({ data, alpha }: PlotProps) {
+export default function PoincareChart({ data, saveFormat }: PlotProps) {
     const sphereData = generateSphereData();
     const labelData = {
         x: [1, -1, 0, 0, 0, 0], //S1
@@ -41,16 +42,15 @@ export default function PoincareChart({ data, alpha }: PlotProps) {
                     highlight: false,
                 },
                 y: {
-                    highlight: false,
+                    highlight: false
                 },
                 z: {
-                    show:true,
-                     start: -1,
+                    show: true,
+                    start: -1,
                     end: 1,
                     size: 0.05,
-                    usecolormap: true,
-                    highlightcolor:"#42f462",
-                }
+                    highlight: false
+                },
             },
             colorscale: "Blues",
             opacity: 0.1,
@@ -82,7 +82,7 @@ export default function PoincareChart({ data, alpha }: PlotProps) {
             z: [data.fdtd.s3],
             type: "scatter3d",
             mode: "markers",
-            marker: {color: "Blue", size: 4},
+            marker: {color: "#005AFF", size: 4},
             name: "FDTD Result",
         },
         {
@@ -91,7 +91,7 @@ export default function PoincareChart({ data, alpha }: PlotProps) {
             z: [0, data.fdtd.s3],
             type: "scatter3d",
             mode: "lines",
-            line: {color: "Blue", width: 2},
+            line: {color: "#005AFF", width: 2},
             showlegend: false,
         }
     ];
@@ -104,8 +104,8 @@ export default function PoincareChart({ data, alpha }: PlotProps) {
                 z: [data.simpleSim.s3],
                 type: "scatter3d",
                 mode: "markers",
-                marker: {color: "Green", size: 4},
-                name: `Simple Simulation Result (${alpha} deg.)`,
+                marker: {color: "#F6AA00", size: 4},
+                name: `Simple Simulation Result (${data.simpleSim.alpha.toFixed(3)} deg.)`,
             },
             {
                 x: [0, data.simpleSim.s1],
@@ -113,14 +113,37 @@ export default function PoincareChart({ data, alpha }: PlotProps) {
                 z: [0, data.simpleSim.s3],
                 type: "scatter3d",
                 mode: "lines",
-                line: {color: "green", width: 2},
+                line: {color: "#F6AA00", width: 2},
                 showlegend: false,
             }
         )
     }
+
+    if (data.fitting) {
+        traces.push(
+            {
+                x: [data.fitting.s1],
+                y: [data.fitting.s2],
+                z: [data.fitting.s3],
+                type: "scatter3d",
+                mode: "markers",
+                marker: {color: "#03AF7A", size: 4},
+                name: `Least Squares Result (${data.fitting.alpha.toFixed(3)} deg.)`,
+            },
+            {
+                x: [0, data.fitting.s1],
+                y: [0, data.fitting.s2],
+                z: [0, data.fitting.s3],
+                type: "scatter3d",
+                mode: "lines",
+                line: {color: "#03AF7A", width: 2},
+                showlegend: false,
+            }
+        )
+    }
+
     const chartId = "poincare-chart";
-    /*
-    const handleDownload = (format: "png" | "svg" | "jpeg") => {
+    const handleDownloadPoincareChart = (format: "png" | "svg" | "jpeg" | "webp") => {
         Plotly.downloadImage(chartId, {
             format: format,
             width: 1200,
@@ -128,35 +151,81 @@ export default function PoincareChart({ data, alpha }: PlotProps) {
             filename: "newplot"
         });
     };
-    */
+
+    const containerRef = useRef<HTMLDivElement>(null);
+    const [layout, setLayout] = useState<Partial<Layout>>({
+        scene: {
+            aspectmode: "cube",
+            xaxis: {
+                title: {text: "S1"},
+                showspikes: false,
+                range: [-1, 1],
+            },
+            yaxis: {
+                title: {text: "S2"},
+                showspikes: false,
+                range: [-1, 1],
+            },
+            zaxis: {
+                title: {text: "S3"},
+                showspikes: false,
+                range: [-1, 1],
+            },
+        },
+        margin: {l:0, r:0, b:10, t:0},
+        legend: {
+            x: 1,
+            xanchor: "right",
+            y: 0.95,
+            yanchor: "top",
+        },
+    })
+
+    useEffect(() => {
+        const handleResize = () => {
+            if (containerRef.current) {
+                const newWidth = containerRef.current.offsetWidth;
+                const newHeight = containerRef.current.offsetHeight;
+                setLayout(prev => ({
+                    ...prev,
+                    width: newWidth,
+                    //height: newHeight
+                }));
+            }
+        }
+
+        let resizeTimer: NodeJS.Timeout;
+        const debouncedResize = () => {
+            clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(handleResize, 100);
+        }
+
+        debouncedResize();
+        window.addEventListener('resize', debouncedResize);
+
+        return () => {
+            window.removeEventListener('resize', debouncedResize);
+            clearTimeout(resizeTimer);
+        }
+    }, []);
 
     return (
-        <div>
+        <div ref={containerRef} className='grid items-center w-full'>
             <Plot
                 divId={chartId}
                 data={traces}
-                layout={{
-                    scene: {
-                        aspectmode: "cube",
-                        xaxis: {title: {text: "S1"}},
-                        yaxis: {title: {text: "S2"}},
-                        zaxis: {title: {text: "S3"}},
-                    },
-                    margin: {l:0, r:0, b:10, t:0},
-                    legend: {
-                        x: 1,
-                        xanchor: "right",
-                        y: 0.95,
-                        yanchor: "top",
-                    }
-                }}
+                layout={layout}
                 className='w-full'
+                style={{
+                    width: "100%",
+                    height: "100%",
+                }}
                 config={{
                     displaylogo: false,
                     modeBarButtonsToRemove: ['toImage'],
                 }}
             />
-            <Button>Save Image</Button>
+            <Button onClick={() => handleDownloadPoincareChart(saveFormat)}>Save Image</Button>
         </div>
     )
 }

@@ -61,12 +61,12 @@ export default function SettingsSheet({ currentValues, sendCurrentValues }: Sett
                 </SheetHeader>
                 <div className="grid flex-1 auto-rows-min gap-6 px-4">
                     <div>
-                        <Label htmlFor="divNo" className="pb-4">Division No.</Label>
+                        <Label htmlFor="divNo" className="pb-4 font-bold">Division No.</Label>
                         <Input id="divNo" type="number" name="divNo" value={temporaryValues.divNo} min="1" step="1" onChange={handleChange} />
                     </div>
                     <Separator />
                     <div>
-                        <Label className="pb-4">Filename</Label>
+                        <Label className="pb-4 font-bold">Filename</Label>
                         <div className="grid grid-cols-[auto_1fr_auto] items-center gap-x-2 gap-y-1">
                             <SelectFile id="esReal" name={"EsRealName"} labelName="Es_real" currentFilename={temporaryValues.EsRealName} sendFilename={handleFilename} />
                             <SelectFile id="esImag" name={"EsImagName"} labelName="Es_imag" currentFilename={temporaryValues.EsImagName} sendFilename={handleFilename} />
