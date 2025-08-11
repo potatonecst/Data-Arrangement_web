@@ -185,7 +185,7 @@ export default function PoincareChart({ data, saveFormat }: PlotProps) {
         const handleResize = () => {
             if (containerRef.current) {
                 const newWidth = containerRef.current.offsetWidth;
-                const newHeight = containerRef.current.offsetHeight;
+                //const newHeight = containerRef.current.offsetHeight;
                 setLayout(prev => ({
                     ...prev,
                     width: newWidth,
