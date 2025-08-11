@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import Plot from 'react-plotly.js';
 import Plotly from "plotly.js";
-import type { FDTDResult, SimpleSimResult, Result } from '@/routes/Body';
+import type { Result } from '@/routes/Body';
 import type { Data, Layout } from 'plotly.js';
 
 import { Button } from '@/components/ui/button'
@@ -101,7 +101,7 @@ export default function LineChart({ data, saveFormat }: PlotProps) {
         const handleResize = () => {
             if (containerRef.current) {
                 const newWidth = containerRef.current.offsetWidth;
-                const newHeight = containerRef.current.offsetHeight;
+                //const newHeight = containerRef.current.offsetHeight;
                 setLayout(prev => ({
                     ...prev,
                     width: newWidth,

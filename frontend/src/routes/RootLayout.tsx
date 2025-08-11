@@ -6,17 +6,6 @@ import { Loader2 } from "lucide-react";
 
 import SettingsSheet from "@/components/SettingsSheet";
 
-interface DefaultSettings {
-    divNo: number;
-    EsRealName: string;
-    EsImagName: string;
-    EpRealName: string;
-    EpImagName: string;
-}
-interface DefaultValues {
-    simpleSim: boolean;
-    alpha: number;
-}
 interface LoaderData {
     divNo: number;
     EsRealName: string;
