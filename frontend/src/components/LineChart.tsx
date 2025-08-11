@@ -63,8 +63,8 @@ export default function LineChart({ data, saveFormat }: PlotProps) {
     const handleDownloadLineChart = (format: "png" | "svg" | "jpeg" | "webp") => {
         Plotly.downloadImage(chartId, {
             format: format,
-            width: 1200,
-            height: 800,
+            width: 600,
+            height: 400,
             filename: "newplot",
         })
     }

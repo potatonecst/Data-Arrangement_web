@@ -225,7 +225,7 @@ export default function PoincareChart({ data, saveFormat }: PlotProps) {
                     modeBarButtonsToRemove: ['toImage'],
                 }}
             />
-            <Button onClick={() => handleDownloadPoincareChart(saveFormat)}>Save Image</Button>
+            <Button onClick={() => handleDownloadPoincareChart(saveFormat)}>Download Image</Button>
         </div>
     )
 }
