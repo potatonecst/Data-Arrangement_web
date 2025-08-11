@@ -62,6 +62,8 @@ class CalculationRespose(BaseModel):
     simpleSim: Optional[SimpleSimResult] = None
     fitting: Optional[FittingResult] = None
 
+load_dotenv()
+
 app = FastAPI()
 
 origins = os.getenv("CORS_ORIGINS", "").split(",")
