@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import Plot from 'react-plotly.js';
 import Plotly from "plotly.js";
 import type { Result } from '@/routes/Body';
-import type { Data, Layout } from 'plotly.js';
+import type { Layout } from 'plotly.js';
 
 import { Button } from "@/components/ui/button"
 
@@ -32,7 +32,7 @@ export default function PoincareChart({ data, saveFormat }: PlotProps) {
         text: ["H", "V", "D", "A", "R", "L"],
     };
 
-    const traces: Data[] = [
+    const traces: any[] = [
         {
             ...sphereData,
             type: "surface",
