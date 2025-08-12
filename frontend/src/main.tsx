@@ -6,8 +6,10 @@ import './index.css'
 
 import RootLayout from './routes/RootLayout';
 import Body from './routes/Body';
+//import AppLoader from './components/AppLoader';
 
 import { API_BASE_URL } from '@/config';
+
 
 const router = createBrowserRouter([
   {

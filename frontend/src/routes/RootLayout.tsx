@@ -1,10 +1,11 @@
-import { useState } from "react";
-import { Outlet, useLoaderData, useNavigation } from "react-router-dom";
+import { Suspense, useState } from "react";
+import { Outlet, useLoaderData } from "react-router-dom";
 //import { Button } from "@/components/ui/button";
 //import { Label } from "@/components/ui/label";
-import { Loader2 } from "lucide-react";
+//import { Loader2 } from "lucide-react";
 
 import SettingsSheet from "@/components/SettingsSheet";
+import AppLoader from "@/components/AppLoader";
 
 interface LoaderData {
     divNo: number;
@@ -18,16 +19,7 @@ interface LoaderData {
     initialAlpha: number;
 }
 
-const AppLoader = () => (
-    <div className="flex h-screen w-full items-center justify-center bg-background">
-        <Loader2 className="h-12 w-12 animate-spin text-primary" />
-        <p className="ml-4 text-lg font-semibold">Now Loading...</p>
-    </div>
-)
-
 export default function RootLayout() {
-    const navigation = useNavigation();
-    const isLoading = navigation.state === "loading";
     const loaderData = useLoaderData() as LoaderData;
     const initialSettingsData = {
         divNo: loaderData.divNo,
@@ -42,7 +34,6 @@ export default function RootLayout() {
         fitting: loaderData.fitting,
         initialAlpha: loaderData.initialAlpha,
     };
-    //const [settingsValue, setSettingsValue] = useState<Array<string | number>>([201, "Es_real.txt", "Es_imag.txt", "Ep_real.txt", "Ep_imag.txt"])
     const [settingsValue, setSettingsValue] = useState(initialSettingsData)
     return (
         <div className="container mx-auto p-4">
@@ -54,7 +45,9 @@ export default function RootLayout() {
                 <SettingsSheet currentValues={settingsValue} sendCurrentValues={setSettingsValue} />
             </header>
             <main>
-                {isLoading ? <AppLoader /> : <Outlet context={{settingsValue, initialValues}} />}
+                <Suspense fallback={<AppLoader />}>
+                    <Outlet context={{settingsValue, initialValues}} />
+                </Suspense>
             </main>
         </div>
     );
