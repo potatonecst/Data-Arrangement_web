@@ -10,7 +10,7 @@ import Body from './routes/Body';
 
 //import { API_BASE_URL } from '@/config';
 
-const fetchWithRetry = async (url: string, retries = 5, delay = 2000) => {
+const fetchWithRetry = async (url: string, retries = 15, delay = 3000) => {
   for (let i = 0; i < retries; i++) {
     try {
       const response = await fetch(url);
@@ -22,7 +22,7 @@ const fetchWithRetry = async (url: string, retries = 5, delay = 2000) => {
     } catch (error){
       console.log(`Attempt ${i + 1}: Server not responding, retrying in ${delay}ms`); //サーバがスリープ状態
     }
-    await new Promise(resolve => setTimeout(resolve, delay)); //指定時間待つ
+    await new Promise(resolve => setTimeout(resolve, delay)); //指定時間[ms]待つ
   }
   throw new Response("Server did not respond after multiple attempts.", {status: 503}); //指定回数リトライしても失敗
 }
