@@ -8,7 +8,7 @@ import RootLayout from './routes/RootLayout';
 import Body from './routes/Body';
 //import AppLoader from './components/AppLoader';
 
-import { API_BASE_URL } from '@/config';
+//import { API_BASE_URL } from '@/config';
 
 
 const router = createBrowserRouter([
@@ -16,7 +16,11 @@ const router = createBrowserRouter([
     path: "/",
     element: <RootLayout />,
     loader: async () => {
-      const response = await fetch(`${API_BASE_URL}/default-values`);
+      const apiUrl = import.meta.env.VITE_API_BASE_URL;
+      if (!apiUrl) {
+        throw new Error("VITE_API_BASE_URL is not defined. Please check your environment variables.")
+      }
+      const response = await fetch(`${apiUrl}/default-values`);
       if (!response.ok) {
         throw new Response("Failed to fetch initial settings values from server.", {
           status: response.status,
