@@ -22,7 +22,7 @@ const loaderWithRetry = async () => {
   for (let i = 0; i < retries; i++) {
     try {
       const response = await fetch(`${apiUrl}/default-values`, {
-        signal: AbortSignal.timeout(5000) //timeout: 8000 ms
+        signal: AbortSignal.timeout(5000) //timeout: 5000 ms
       });
       if (response.ok) {
         console.log("Server is up!\nFetching data...");
@@ -30,10 +30,11 @@ const loaderWithRetry = async () => {
       }
       console.error(`Attempt ${i + 1}: Server returned status ${response.status}`); //APIのエラー（サーバは稼働中）
     } catch (error){
-      if (error instanceof Error && error.name === "TimeoutError") {
-        console.log(`Attempt ${i + 1}: Request timed out (8000 ms), retrying in ${delay} ms...`)
+      const message = error instanceof Error && error.name === "TimeoutError" ? "Request timed out (5000 ms)" : "Server not responding"
+      if (i != retries - 1) {
+        console.log(`Attempt ${i + 1}: ${message}, retrying in ${delay} ms...`)
       } else {
-        console.log(`Attempt ${i + 1}: Server not responding, retrying in ${delay} ms...`); //サーバがスリープ状態
+        console.log(`Attempt ${i + 1}: ${message}`)
       }
     }
     if (i < retries - 1) {
@@ -45,7 +46,9 @@ const loaderWithRetry = async () => {
 
 const ErrorPage = () => {
   return (
-    <div>Error! Try Again.</div>
+    <div className='flex h-screen w-full items-center justify-center bg-background'>
+      <p className='text-xl font-bold'>Error! Try Again.</p>
+    </div>
   )
 }
 
@@ -53,7 +56,10 @@ const router = createBrowserRouter([
   {
     path: "/",
     element: <RootLayout />,
-    loader: loaderWithRetry,
+    loader: () => {
+      const dataPromise = loaderWithRetry();
+      return {initialData: dataPromise};
+    },
     errorElement: <ErrorPage />,
     children: [
       {
