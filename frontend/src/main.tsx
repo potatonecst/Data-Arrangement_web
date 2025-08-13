@@ -10,19 +10,35 @@ import Body from './routes/Body';
 
 //import { API_BASE_URL } from '@/config';
 
-const fetchWithRetry = async (url: string, retries = 15, delay = 3000) => {
+const loaderWithRetry = async () => {
+  const apiUrl = import.meta.env.VITE_API_BASE_URL;
+  if (!apiUrl) {
+    throw new Error("VITE_API_BASE_URL is not defined. Please check your environment variables.")
+  }
+
+  const retries = 15;
+  const delay = 3000;
+
   for (let i = 0; i < retries; i++) {
     try {
-      const response = await fetch(url);
+      const response = await fetch(`${apiUrl}/default-values`, {
+        signal: AbortSignal.timeout(5000) //timeout: 8000 ms
+      });
       if (response.ok) {
         console.log("Server is up!\nFetching data...");
         return response.json();
       }
       console.error(`Attempt ${i + 1}: Server returned status ${response.status}`); //APIのエラー（サーバは稼働中）
     } catch (error){
-      console.log(`Attempt ${i + 1}: Server not responding, retrying in ${delay}ms`); //サーバがスリープ状態
+      if (error instanceof Error && error.name === "TimeoutError") {
+        console.log(`Attempt ${i + 1}: Request timed out (8000 ms), retrying in ${delay} ms...`)
+      } else {
+        console.log(`Attempt ${i + 1}: Server not responding, retrying in ${delay} ms...`); //サーバがスリープ状態
+      }
     }
-    await new Promise(resolve => setTimeout(resolve, delay)); //指定時間[ms]待つ
+    if (i < retries - 1) {
+      await new Promise(resolve => setTimeout(resolve, delay)); //指定時間[ms]待つ
+    }
   }
   throw new Response("Server did not respond after multiple attempts.", {status: 503}); //指定回数リトライしても失敗
 }
@@ -37,14 +53,7 @@ const router = createBrowserRouter([
   {
     path: "/",
     element: <RootLayout />,
-    loader: async () => {
-      const apiUrl = import.meta.env.VITE_API_BASE_URL;
-      if (!apiUrl) {
-        throw new Error("VITE_API_BASE_URL is not defined. Please check your environment variables.")
-      }
-      const dataPromise = fetchWithRetry(`${apiUrl}/default-values`);
-      return {initialData: dataPromise};
-    },
+    loader: loaderWithRetry,
     errorElement: <ErrorPage />,
     children: [
       {

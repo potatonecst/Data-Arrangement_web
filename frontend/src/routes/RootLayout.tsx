@@ -1,5 +1,5 @@
 import { Suspense, useState } from "react";
-import { Outlet, useLoaderData, Await } from "react-router-dom";
+import { Outlet, useLoaderData } from "react-router-dom";
 //import { Button } from "@/components/ui/button";
 //import { Label } from "@/components/ui/label";
 //import { Loader2 } from "lucide-react";
@@ -19,19 +19,20 @@ interface LoaderData {
     initialAlpha: number;
 }
 
-const LoadedLayout = ({resolvedData}: {resolvedData: LoaderData}) => {
+const LoadedLayout = () => {
+    const loaderData = useLoaderData() as LoaderData;
     const initialSettingsData = {
-        divNo: resolvedData.divNo,
-        EsRealName: resolvedData.EsRealName,
-        EsImagName: resolvedData.EsImagName,
-        EpRealName: resolvedData.EpRealName,
-        EpImagName: resolvedData.EpImagName,
+        divNo: loaderData.divNo,
+        EsRealName: loaderData.EsRealName,
+        EsImagName: loaderData.EsImagName,
+        EpRealName: loaderData.EpRealName,
+        EpImagName: loaderData.EpImagName,
     };
     const initialValues = {
-        simpleSim: resolvedData.simpleSim,
-        alpha: resolvedData.alpha,
-        fitting: resolvedData.fitting,
-        initialAlpha: resolvedData.initialAlpha,
+        simpleSim: loaderData.simpleSim,
+        alpha: loaderData.alpha,
+        fitting: loaderData.fitting,
+        initialAlpha: loaderData.initialAlpha,
     };
     const [settingsValue, setSettingsValue] = useState(initialSettingsData);
     return (
@@ -51,16 +52,10 @@ const LoadedLayout = ({resolvedData}: {resolvedData: LoaderData}) => {
 }
 
 export default function RootLayout() {
-    const {initialData} = useLoaderData() as {initialData: Promise<LoaderData>};
     return (
         <div className="container mx-auto p-4">
             <Suspense fallback={<AppLoader />}>
-                <Await
-                    resolve={initialData}
-                    errorElement={<p>Failed to load data.</p>}
-                >
-                    {(resolvedData) => <LoadedLayout resolvedData={resolvedData} />}
-                </Await>
+                <LoadedLayout />
             </Suspense>
         </div>
     );
