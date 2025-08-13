@@ -83,10 +83,6 @@ export default function Body() {
 
     useEffect(() => {
         console.log("State has been updated: ", fileContents);
-        if (!fileContents) {
-            setIsError(true)
-            console.log("fileContents is null")
-        }
     }, [fileContents]);
     useEffect(() => {
         console.log("[Error State]: ", isError);
@@ -259,7 +255,7 @@ export default function Body() {
                     <Separator orientation="vertical" />
                 </div>
                 <div className='basis-4xs p-1 place-content-center'>
-                    <Button className='' onClick={handleExecute} disabled={isReading || isError || isCalculating}>{isReading || isCalculating ? <Loader2 className='animate-spin' /> : <IconPlayerPlayFilled />}<div className='md:hidden lg:block'>Start</div></Button>
+                    <Button className='' onClick={handleExecute} disabled={isReading || !fileContents || isCalculating}>{isReading || isCalculating ? <Loader2 className='animate-spin' /> : <IconPlayerPlayFilled />}<div className='md:hidden lg:block'>Start</div></Button>
                 </div>
             </div>
             <Separator className='mt-1' />

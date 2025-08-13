@@ -1,5 +1,5 @@
 import { Suspense, useState } from "react";
-import { Outlet, useLoaderData } from "react-router-dom";
+import { Outlet, useLoaderData, Await } from "react-router-dom";
 //import { Button } from "@/components/ui/button";
 //import { Label } from "@/components/ui/label";
 //import { Loader2 } from "lucide-react";
@@ -19,24 +19,23 @@ interface LoaderData {
     initialAlpha: number;
 }
 
-export default function RootLayout() {
-    const loaderData = useLoaderData() as LoaderData;
+const LoadedLayout = ({resolvedData}: {resolvedData: LoaderData}) => {
     const initialSettingsData = {
-        divNo: loaderData.divNo,
-        EsRealName: loaderData.EsRealName,
-        EsImagName: loaderData.EsImagName,
-        EpRealName: loaderData.EpRealName,
-        EpImagName: loaderData.EpImagName,
+        divNo: resolvedData.divNo,
+        EsRealName: resolvedData.EsRealName,
+        EsImagName: resolvedData.EsImagName,
+        EpRealName: resolvedData.EpRealName,
+        EpImagName: resolvedData.EpImagName,
     };
     const initialValues = {
-        simpleSim: loaderData.simpleSim,
-        alpha: loaderData.alpha,
-        fitting: loaderData.fitting,
-        initialAlpha: loaderData.initialAlpha,
+        simpleSim: resolvedData.simpleSim,
+        alpha: resolvedData.alpha,
+        fitting: resolvedData.fitting,
+        initialAlpha: resolvedData.initialAlpha,
     };
-    const [settingsValue, setSettingsValue] = useState(initialSettingsData)
+    const [settingsValue, setSettingsValue] = useState(initialSettingsData);
     return (
-        <div className="container mx-auto p-4">
+        <>
             <header className="">
                 <div className="md:flex font-melete items-baseline gap-2">
                     <h1 className="font-bold text-sm md:text-xl lg:text-2xl">Data Arranger for FDTD</h1>
@@ -45,10 +44,24 @@ export default function RootLayout() {
                 <SettingsSheet currentValues={settingsValue} sendCurrentValues={setSettingsValue} />
             </header>
             <main>
-                <Suspense fallback={<AppLoader />}>
-                    <Outlet context={{settingsValue, initialValues}} />
-                </Suspense>
+                <Outlet context={{settingsValue, initialValues}} />
             </main>
+        </>
+    );
+}
+
+export default function RootLayout() {
+    const {initialData} = useLoaderData() as {initialData: Promise<LoaderData>};
+    return (
+        <div className="container mx-auto p-4">
+            <Suspense fallback={<AppLoader />}>
+                <Await
+                    resolve={initialData}
+                    errorElement={<p>Failed to load data.</p>}
+                >
+                    {(resolvedData) => <LoadedLayout resolvedData={resolvedData} />}
+                </Await>
+            </Suspense>
         </div>
     );
 }
