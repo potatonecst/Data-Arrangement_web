@@ -59,7 +59,7 @@ export default function RootLayout() {
                     resolve={initialData}
                     errorElement={
                         <div className="flex h-screen w-full items-center justify-center bg-background">
-                            <p className="text-xl font-bold text-destructive">Failed to load data.</p>
+                            <p className="text-xl font-bold text-destructive text-center">Failed to load data.<br />Try Again!</p>
                         </div>
                     }
                 >
