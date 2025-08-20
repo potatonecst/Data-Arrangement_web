@@ -21,6 +21,10 @@ class ArrangementSettings(BaseModel):
     alpha: float
     fitting: bool
     initialAlpha: float
+    simPropDir: bool
+    fiberRadius: float
+    wavelength: float
+    initialPol: bool
 
 class CalculationRequest(BaseModel):
     divNo: int
@@ -32,6 +36,10 @@ class CalculationRequest(BaseModel):
     alpha: float
     fitting: bool
     initialAlpha: float
+    simPropDir: bool
+    fiberRadius: float
+    wavelength: float
+    initialPol: bool
 
 class FDTDResult(BaseModel):
     s1: float
@@ -107,6 +115,10 @@ def get_default_values():
         "alpha": arranger.alpha,
         "fitting": arranger.fitting,
         "initialAlpha": arranger.initialAlpha,
+        "simPropDir": arranger.simPropDir,
+        "fiberRadius": arranger.a * 1e9,
+        "wavelength": arranger.lam * 1e9,
+        "initialPol": 0 if arranger.psi == np.pi / 2 else 1,
     }
 
 @app.post("/calculate", response_model=CalculationRespose)
@@ -115,6 +127,10 @@ def run_calculate(request: CalculationRequest):
     arranger.setDivisionNo(request.divNo)
     arranger.inputData(request.EsRealContent, request.EsImagContent, request.EpRealContent, request.EpImagContent)
     arranger.setSimpleSim(request.simpleSim)
+    arranger.setSimPropDir(request.simPropDir)
+    arranger.setFiberRadius(request.fiberRadius)
+    arranger.setWavelength(request.wavelength)
+    arranger.setInitialPol(request.initialPol)
     arranger.setAlpha(request.alpha)
     arranger.extractData()
     
@@ -137,6 +153,5 @@ def run_calculate(request: CalculationRequest):
         fittingResult = FittingResult(
             s1=s1Fit, s2=s2Fit, s3=s3Fit, theta=np.rad2deg(thetaFit).tolist(), alpha=bestAlpha, intensity=iFit.tolist()
         )
-        
     
     return CalculationRespose(fdtd=fdtdResult, simpleSim=simpleSimResult, fitting=fittingResult)

@@ -28,6 +28,10 @@ interface Settings {
     EsImagName: string;
     EpRealName: string;
     EpImagName: string;
+    simPropDir: boolean;
+    fiberRadius: number;
+    wavelength: number;
+    initialPol: boolean;
 }
 interface Values {
     simpleSim: boolean;
@@ -180,6 +184,10 @@ export default function Body() {
                 alpha: currentValues.alpha || 0,
                 fitting: currentValues.fitting,
                 initialAlpha: currentValues.initialAlpha || 0,
+                simPropDir: settingsValue.simPropDir,
+                fiberRadius: settingsValue.fiberRadius,
+                wavelength: settingsValue.wavelength,
+                initialPol: settingsValue.initialPol,
             }
             const response = await fetch(`${API_BASE_URL}/calculate`, {
                 method: 'POST',

@@ -17,6 +17,10 @@ interface LoaderData {
     alpha: number;
     fitting: boolean;
     initialAlpha: number;
+    simPropDir: boolean;
+    fiberRadius: number;
+    wavelength: number;
+    initialPol: boolean;
 }
 
 const LoadedLayout = ({resolvedData}: {resolvedData: LoaderData}) => {
@@ -26,6 +30,10 @@ const LoadedLayout = ({resolvedData}: {resolvedData: LoaderData}) => {
         EsImagName: resolvedData.EsImagName,
         EpRealName: resolvedData.EpRealName,
         EpImagName: resolvedData.EpImagName,
+        simPropDir: resolvedData.simPropDir,
+        fiberRadius: resolvedData.fiberRadius,
+        wavelength: resolvedData.wavelength,
+        initialPol: resolvedData.initialPol,
     };
     const initialValues = {
         simpleSim: resolvedData.simpleSim,

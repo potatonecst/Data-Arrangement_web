@@ -31,13 +31,13 @@ def str2FloatArr(arr): #文字列の2重listをfloat型に
 
 class Arranger:
     def __init__(self):
-        self.a = 200e-9
+        self.a = 200e-9 #fiber radius
         self.nco = 1.45
         self.ncl = 1.0
         self.n = 1
         self.l = 1
-        self.lam = 785e-9
-        self.psi = np.pi / 2
+        self.lam = 785e-9 #wavelength
+        self.psi = np.pi / 2 #quasi-y
         self.R = self.a
         self.theta = np.linspace(0, 2 * np.pi, 1000)
         self.faxis = 0
@@ -47,20 +47,18 @@ class Arranger:
                                 [1j, 0]])
         self.sigmaZ = np.array([[1, 0],
                                 [0, -1]])
-        self.divNo = 201
+        self.divNo = 201 #分割数
         self.simpleSim = 0
         self.alpha = 0
+        self.simPropDir = 0 #0 -> forward, 1 -> backward
         self.fitting = 0
         self.initialAlpha = 0
-        self.Es_real_name = "Es_real.txt"
+        self.Es_real_name = "Es_real.txt" #for display default filename
         self.Es_imag_name = "Es_imag.txt"
         self.Ep_real_name = "Ep_real.txt"
         self.Ep_imag_name = "Ep_imag.txt"
-    """
-    def setFolderPath(self, folderPath):
-        self.folderPath = folderPath
-    """
-    def setDivisionNo(self, divNo): #settings項目
+    
+    def setDivisionNo(self, divNo): #Settings項目
         self.divNo = divNo
     
     def setSimpleSim(self, simpleSim):
@@ -68,6 +66,18 @@ class Arranger:
     
     def setAlpha(self, alpha):
         self.alpha = alpha
+    
+    def setSimPropDir(self, simPropDir):
+        self.simPropDir = simPropDir
+    
+    def setFiberRadius(self, a):
+        self.a = a * 1e-9 #a [nm]
+    
+    def setWavelength(self, lam):
+        self.lam = lam * 1e-9 #lam [nm]
+    
+    def setInitialPol(self, psi):
+        self.psi = np.pi / 2 if psi == 0 else 0 #psi: 0 -> np.pi / 2, 1 -> 0
     
     """
     def setFileName(self, fileName, EComponentVar): #settings項目
@@ -139,19 +149,19 @@ class Arranger:
         return self.s1FDTD, self.s2FDTD, self.s3FDTD, self.theta, self.IFDTD
     
     def simpleSimulations(self, alpha):
-        self.ExSim, self.EySim, self.EzSim = CalcHEMode(self.a, self.nco, self.ncl, self.n, self.l, self.lam, self.psi, self.R, np.deg2rad(alpha), 0) #propDir = 0
+        self.ExSim, self.EySim, self.EzSim = CalcHEMode(self.a, self.nco, self.ncl, self.n, self.l, self.lam, self.psi, self.R, np.deg2rad(alpha), self.simPropDir)
         self.s1Sim, self.s2Sim, self.s3Sim, self.ISim = self.calcState(self.EySim, self.EzSim)
         
         return self.s1Sim, self.s2Sim, self.s3Sim, self.theta, self.ISim
     
     def simulationModelForFitting(self, theta, alpha):
-        _, EySim, EzSim = CalcHEMode(self.a, self.nco, self.ncl, self.n, self.l, self.lam, self.psi, self.R, alpha, 0) #alpha -> radian
+        _, EySim, EzSim = CalcHEMode(self.a, self.nco, self.ncl, self.n, self.l, self.lam, self.psi, self.R, alpha, self.simPropDir) #alpha: radian
         _, _, _, ISim = self.calcState(EySim, EzSim)
         return ISim
     
     def findBestFit(self, iniAlpha):
         targetIntensity = self.IFDTD
-        popt, pcov = curve_fit(self.simulationModelForFitting, self.theta, targetIntensity, p0=[np.deg2rad(iniAlpha)], bounds=(-np.pi, np.pi))
+        popt, pcov = curve_fit(self.simulationModelForFitting, self.theta, targetIntensity, p0=[np.deg2rad(iniAlpha)], bounds=(-np.pi, np.pi)) #bestAlpha: deg -> rad
         bestAlpha = np.rad2deg(popt[0])
         return bestAlpha
         
