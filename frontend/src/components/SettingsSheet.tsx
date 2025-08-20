@@ -106,7 +106,7 @@ export default function SettingsSheet({ currentValues, sendCurrentValues }: Sett
                         </div>
                         <Separator />
                         <div>
-                            <Label className="pb-4 font-bold">Lazer Polarization</Label>
+                            <Label className="pb-4 font-bold">Laser Polarization</Label>
                             <RadioGroup value={temporaryValues.initialPol ? "1" : "0"} className="flex w-full items-center justify-center" onValueChange={handleRadioChange("initialPol")}>
                                 <div className="flex w-11/12 justify-between">
                                     <div className="flex items-center gap-1">
