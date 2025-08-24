@@ -85,8 +85,8 @@ if __name__ == "__main__":
     lam = 785e-9 #wavelength
     psi = np.pi/2.0 #phase of quasi-y pol.
     R = a   #radial distance
-    alpha = 0.8 * np.pi/2.  #angle <T in the function>
-    propDir = 0 #propagation direction: 0 -> plus z-dir, 1 -> minus z-dir
+    alpha = np.deg2rad(60)  #angle <T in the function>
+    propDir = 1 #propagation direction: 1 -> plus z-dir, 0 -> minus z-dir
     
     E = np.array(CalcHEMode(a, nco, ncl, n, l, lam, psi, R, alpha, propDir))
     print(E)

@@ -1,22 +1,8 @@
 import numpy as np
 from scipy.optimize import curve_fit
-#import matplotlib.pyplot as plt
 from HybridModeSolverRevised import CalcHEMode
 from PolarizationCalculationRevised import CalcPolarizationFDTD
-"""
-class fileReading:
-    def __init__(self, filePath): #初期化
-        self.fPath = filePath
-        self.readAll()
-        
-    def readAll(self): #1行ずつ読み込んでlistに格納(\nは削除)
-        with open(self.fPath, "r", encoding="utf-8") as f:
-            self.lines = [line.strip() for line in f.readlines()]
-        return self.lines
-    
-    def readBetween(self, startLine, endLine): #1行目は1として指定、endLineは含まない
-        return self.lines[startLine - 1:endLine-1]
-"""
+
 def divideStr(arr): #スペースで文字列を分割
     arr = [line.split() for line in arr]
     return arr
@@ -49,10 +35,10 @@ class Arranger:
                                 [0, -1]])
         self.divNo = 201 #分割数
         self.simpleSim = 0
-        self.alpha = 0
-        self.simPropDir = 0 #0 -> forward, 1 -> backward
+        self.alpha = 0 #radian
+        self.simPropDir = 1 #1 -> forward, 0 -> backward
         self.fitting = 0
-        self.initialAlpha = 0
+        self.initialAlpha = 0 #radian
         self.Es_real_name = "Es_real.txt" #for display default filename
         self.Es_imag_name = "Es_imag.txt"
         self.Ep_real_name = "Ep_real.txt"
@@ -70,8 +56,12 @@ class Arranger:
     def setSimPropDir(self, simPropDir):
         self.simPropDir = simPropDir
     
+    def setInitialAlpha(self, initialAlpha):
+        self.initialAlpha = initialAlpha
+    
     def setFiberRadius(self, a):
         self.a = a * 1e-9 #a [nm]
+        self.R = self.a
     
     def setWavelength(self, lam):
         self.lam = lam * 1e-9 #lam [nm]
@@ -79,23 +69,6 @@ class Arranger:
     def setInitialPol(self, psi):
         self.psi = np.pi / 2 if psi == 0 else 0 #psi: 0 -> np.pi / 2, 1 -> 0
     
-    """
-    def setFileName(self, fileName, EComponentVar): #settings項目
-        if EComponentVar == "EsReal":
-            self.Es_real_name = fileName
-        elif EComponentVar == "EsImag":
-            self.Es_imag_name = fileName
-        elif EComponentVar == "EpReal":
-            self.Ep_real_name = fileName
-        else:
-            self.Ep_imag_name = fileName
-
-    def fileInput(self):
-        self.EsFile_real = fileReading(self.folderPath + "/" + self.Es_real_name)
-        self.EsFile_imag = fileReading(self.folderPath + "/" + self.Es_imag_name)
-        self.EpFile_real = fileReading(self.folderPath + "/" + self.Ep_real_name)
-        self.EpFile_imag = fileReading(self.folderPath + "/" + self.Ep_imag_name)
-        """
     def inputData(self, EsReal_txt: str, EsImag_txt: str, EpReal_txt: str, EpImag_txt: str):
         #1行ずつlistに格納(\nは削除)
         self.EsFile_real = EsReal_txt.splitlines()
@@ -125,16 +98,16 @@ class Arranger:
         self.Ep = np.array(self.Ep_real + 1j * self.Ep_imag).T[::-1, :]
     
     def calcState(self, Ey, Ez):
-        self.pureState = np.array([[Ez], 
-                                   [Ey]]) #純粋状態
-        self.rho = self.pureState @ self.pureState.conj().T #純粋状態の密度行列
-        self.S0 = np.trace(self.rho @ np.identity(2)).real #Stokesパラメータ
-        self.s1 = (np.trace(self.rho @ self.sigmaZ) / self.S0).real
-        self.s2 = (np.trace(self.rho @ self.sigmaX) / self.S0).real
-        self.s3 = (np.trace(self.rho @ self.sigmaY) / self.S0).real
-        self.I = CalcPolarizationFDTD(Ey, Ez, self.theta, self.faxis).squeeze() #QWPを通過した光の強度
+        pureState = np.array([[Ez], 
+                              [Ey]]) #純粋状態
+        rho = pureState @ pureState.conj().T #純粋状態の密度行列
+        S0 = np.trace(rho @ np.identity(2)).real #Stokesパラメータ
+        s1 = (np.trace(rho @ self.sigmaZ) / S0).real
+        s2 = (np.trace(rho @ self.sigmaX) / S0).real
+        s3 = (np.trace(rho @ self.sigmaY) / S0).real
+        I = CalcPolarizationFDTD(Ey, Ez, self.theta, self.faxis).squeeze() #QWPを通過した光の強度
         
-        return self.s1, self.s2, self.s3, self.I    
+        return s1, s2, s3, I    
     
     def calcPolarization(self):
         self.ind = int(np.ceil(self.divNo / 2)) if self.divNo % 2 == 0 else int(np.ceil(self.divNo / 2)) - 1 #原点あるいは原点に最も近い正の点を示すindex
@@ -142,26 +115,31 @@ class Arranger:
         self.EsPP = self.Es[self.ind, self.ind]
         self.EpPP = self.Ep[self.ind, self.ind]
         print(f"Es: {self.EsPP}, Ep: {self.EpPP}")
-        self.EyPP = self.EpPP * np.cos(self.Theta[self.ind, self.ind]) * np.cos(self.Phi[self.ind, self.ind]) - self.EsPP * np.sin(self.Phi[self.ind, self.ind])
-        self.EzPP = - (self.EpPP * np.cos(self.Theta[self.ind, self.ind]) * np.sin(self.Phi[self.ind, self.ind]) + self.EsPP * np.cos(self.Phi[self.ind, self.ind]))
+        #self.EyPP = self.EpPP * np.cos(self.Theta[self.ind, self.ind]) * np.cos(self.Phi[self.ind, self.ind]) - self.EsPP * np.sin(self.Phi[self.ind, self.ind])
+        #self.EzPP = (self.EpPP * np.cos(self.Theta[self.ind, self.ind]) * np.sin(self.Phi[self.ind, self.ind]) + self.EsPP * np.cos(self.Phi[self.ind, self.ind]))
+        self.EyPP = -self.EpPP
+        self.EzPP = -self.EsPP
         self.s1FDTD, self.s2FDTD, self.s3FDTD, self.IFDTD = self.calcState(self.EyPP, self.EzPP)
         
         return self.s1FDTD, self.s2FDTD, self.s3FDTD, self.theta, self.IFDTD
     
     def simpleSimulations(self, alpha):
-        self.ExSim, self.EySim, self.EzSim = CalcHEMode(self.a, self.nco, self.ncl, self.n, self.l, self.lam, self.psi, self.R, np.deg2rad(alpha), self.simPropDir)
-        self.s1Sim, self.s2Sim, self.s3Sim, self.ISim = self.calcState(self.EySim, self.EzSim)
+        print(alpha)
+        ExSim, EySim, EzSim = CalcHEMode(self.a, self.nco, self.ncl, self.n, self.l, self.lam, self.psi, self.R, alpha, self.simPropDir)
+        print(f"ExSim: {ExSim}, EySim: {EySim}, EzSim: {EzSim}")
+        s1Sim, s2Sim, s3Sim, ISim = self.calcState(EySim, EzSim)
+        #print(f"ISim: {self.ISim}")
         
-        return self.s1Sim, self.s2Sim, self.s3Sim, self.theta, self.ISim
+        return s1Sim, s2Sim, s3Sim, self.theta, ISim
     
     def simulationModelForFitting(self, theta, alpha):
-        _, EySim, EzSim = CalcHEMode(self.a, self.nco, self.ncl, self.n, self.l, self.lam, self.psi, self.R, alpha, self.simPropDir) #alpha: radian
+        _, EySim, EzSim = CalcHEMode(self.a, self.nco, self.ncl, self.n, self.l, self.lam, self.psi, self.R, alpha, self.simPropDir) #alpha: deg
         _, _, _, ISim = self.calcState(EySim, EzSim)
         return ISim
     
-    def findBestFit(self, iniAlpha):
+    def findBestFit(self):
         targetIntensity = self.IFDTD
-        popt, pcov = curve_fit(self.simulationModelForFitting, self.theta, targetIntensity, p0=[np.deg2rad(iniAlpha)], bounds=(-np.pi, np.pi)) #bestAlpha: deg -> rad
-        bestAlpha = np.rad2deg(popt[0])
+        popt, pcov = curve_fit(self.simulationModelForFitting, self.theta, targetIntensity, p0=[self.initialAlpha], bounds=(-np.pi / 2, np.pi / 2))
+        bestAlpha = np.rad2deg(popt[0]) #bestAlpha: rad -> deg
         return bestAlpha
         

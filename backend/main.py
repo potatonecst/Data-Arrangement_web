@@ -112,9 +112,9 @@ def get_default_values():
         "EpRealName": arranger.Ep_real_name,
         "EpImagName": arranger.Ep_imag_name,
         "simpleSim": arranger.simpleSim,
-        "alpha": arranger.alpha,
+        "alpha": np.rad2deg(arranger.alpha),
         "fitting": arranger.fitting,
-        "initialAlpha": arranger.initialAlpha,
+        "initialAlpha": np.rad2deg(arranger.initialAlpha),
         "simPropDir": arranger.simPropDir,
         "fiberRadius": arranger.a * 1e9,
         "wavelength": arranger.lam * 1e9,
@@ -128,11 +128,19 @@ def run_calculate(request: CalculationRequest):
     arranger.inputData(request.EsRealContent, request.EsImagContent, request.EpRealContent, request.EpImagContent)
     arranger.setSimpleSim(request.simpleSim)
     arranger.setSimPropDir(request.simPropDir)
+    arranger.setInitialAlpha(np.deg2rad(request.initialAlpha))
     arranger.setFiberRadius(request.fiberRadius)
     arranger.setWavelength(request.wavelength)
     arranger.setInitialPol(request.initialPol)
-    arranger.setAlpha(request.alpha)
+    arranger.setAlpha(np.deg2rad(request.alpha))
     arranger.extractData()
+    print(arranger.alpha, arranger.initialAlpha)
+    
+    print("-----Debug-----")
+    print(f"Fiber Radius: {arranger.a}")
+    print(f"Wavelength: {arranger.lam}")
+    print(f"Laser Polarization: {arranger.psi}")
+    print("-----end-----")
     
     s1F, s2F, s3F, thetaF, iF = arranger.calcPolarization()
     fdtdResult = FDTDResult(
@@ -141,15 +149,15 @@ def run_calculate(request: CalculationRequest):
     
     simpleSimResult = None
     if request.simpleSim:
-        s1S, s2S, s3S, thetaS, iS = arranger.simpleSimulations(request.alpha)
+        s1S, s2S, s3S, thetaS, iS = arranger.simpleSimulations(arranger.alpha)
         simpleSimResult = SimpleSimResult(
-            s1=s1S, s2=s2S, s3=s3S, theta=np.rad2deg(thetaS).tolist(), alpha=request.alpha, intensity=iS.tolist()
+            s1=s1S, s2=s2S, s3=s3S, theta=np.rad2deg(thetaS).tolist(), alpha=np.rad2deg(arranger.alpha), intensity=iS.tolist()
         )
     
     fittingResult = None
     if request.fitting:
-        bestAlpha = arranger.findBestFit(request.initialAlpha)
-        s1Fit, s2Fit, s3Fit, thetaFit, iFit = arranger.simpleSimulations(bestAlpha)
+        bestAlpha = arranger.findBestFit()
+        s1Fit, s2Fit, s3Fit, thetaFit, iFit = arranger.simpleSimulations(np.deg2rad(bestAlpha))
         fittingResult = FittingResult(
             s1=s1Fit, s2=s2Fit, s3=s3Fit, theta=np.rad2deg(thetaFit).tolist(), alpha=bestAlpha, intensity=iFit.tolist()
         )

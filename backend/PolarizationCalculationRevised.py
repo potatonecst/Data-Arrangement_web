@@ -78,6 +78,7 @@ def CalcPolarizationFDTD(Ey, Ez, theta, faxis):
 #Example
 if __name__ == "__main__":
     import matplotlib.pyplot as plt
+    """
     #----Initial Conditions----
     a = (200)*1e-9 #Fiber Radius
     nco = 1.45 #Silica
@@ -94,10 +95,10 @@ if __name__ == "__main__":
     #----Calculate Conditions----
     R = a #distance from z-axis to calculation point
     #alpha = np.linspace(-np.pi/2., np.pi/2., 7) #angle of particle
-    alpha = np.pi/2.
+    alpha = np.deg2rad(60)#np.pi/2.
     theta = np.linspace(0.0, 2*np.pi, 1000) #angle of QWP
     faxis = 0 #fast axis -> y
-    propDir = 0 #propagation direction: 0 -> plus z-dir, 1 -> minus z-dir
+    propDir = 1 #propagation direction: 1 -> plus z-dir, 0 -> minus z-dir
     #----End Calculate Conditions----
 
     I = CalcPolarization(a, nco, ncl, lam, n, l, psi, R, alpha, theta, faxis, propDir)
@@ -111,5 +112,16 @@ if __name__ == "__main__":
     ax.set_ylabel("Intensity [arb. units]")
     ax.legend(bbox_to_anchor=(1, 0.5), loc="center left")
     fig.tight_layout()
+    """
+    
+    Ey = 0.96359475j #0.5309654158023798j
+    Ez = -0.48611889 #-0.4861188858892342
+    theta = np.linspace(0, 2 * np.pi, 1000)
+    faxis = 0
+    
+    I = CalcPolarizationFDTD(Ey, Ez, theta, faxis)
+    
+    fig, ax = plt.subplots()
+    ax.plot(theta, I.T)
 
     plt.show()
