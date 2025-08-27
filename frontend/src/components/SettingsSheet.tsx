@@ -20,15 +20,11 @@ import { IconSettings } from "@tabler/icons-react"
 import SelectFile from "./SelectFile";
 
 interface SettingsValues {
-    divNo: number;
     simPropDir: boolean;
     fiberRadius: number;
     wavelength: number;
     initialPol: boolean;
-    EsRealName: string;
-    EsImagName: string;
-    EpRealName: string;
-    EpImagName: string;
+    resultFilename: string;
 }
 
 interface SettingsSheetProps {
@@ -75,11 +71,6 @@ export default function SettingsSheet({ currentValues, sendCurrentValues }: Sett
                 <ScrollArea className="flex-1 w-full min-h-0">
                     <div className="grid flex-1 auto-rows-min gap-6 px-4">
                         <div>
-                            <Label htmlFor="divNo" className="pb-4 font-bold">Division No.</Label>
-                            <Input id="divNo" type="number" name="divNo" value={temporaryValues.divNo} min="1" step="1" onChange={handleChange} />
-                        </div>
-                        <Separator />
-                        <div>
                             <Label className="pb-4 font-bold">Laser Direction of Propagation</Label>
                             <RadioGroup value={temporaryValues.simPropDir ? "1" : "0"} className="flex w-full items-center justify-center" onValueChange={handleRadioChange("simPropDir")}>
                                 <div className="flex w-2/3 justify-between">
@@ -122,12 +113,9 @@ export default function SettingsSheet({ currentValues, sendCurrentValues }: Sett
                         </div>
                         <Separator />
                         <div>
-                            <Label className="pb-4 font-bold">Filename</Label>
+                            <Label className="pb-4 font-bold" id="resultFilename">Filename</Label>
                             <div className="grid grid-cols-[auto_1fr_auto] items-center gap-x-2 gap-y-1">
-                                <SelectFile id="esReal" name={"EsRealName"} labelName="Es_real" currentFilename={temporaryValues.EsRealName} sendFilename={handleFilename} />
-                                <SelectFile id="esImag" name={"EsImagName"} labelName="Es_imag" currentFilename={temporaryValues.EsImagName} sendFilename={handleFilename} />
-                                <SelectFile id="epReal" name={"EpRealName"} labelName="Ep_real" currentFilename={temporaryValues.EpRealName} sendFilename={handleFilename} />
-                                <SelectFile id="epImag" name={"EpImagName"} labelName="Ep_imag" currentFilename={temporaryValues.EpImagName} sendFilename={handleFilename} />
+                                <SelectFile id="resultFilename" name={"resultFilename"} currentFilename={temporaryValues.resultFilename} sendFilename={handleFilename} />
                             </div>
                         </div>
                     </div>

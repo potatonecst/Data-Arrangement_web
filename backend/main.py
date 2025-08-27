@@ -12,11 +12,7 @@ import numpy as np
 from DataArranger_func import Arranger
 
 class ArrangementSettings(BaseModel):
-    divNo: int
-    EsRealName: str
-    EsImagName: str
-    EpRealName: str
-    EpImagName: str
+    resultFilename: str
     simpleSim: bool
     alpha: float
     fitting: bool
@@ -27,11 +23,7 @@ class ArrangementSettings(BaseModel):
     initialPol: bool
 
 class CalculationRequest(BaseModel):
-    divNo: int
-    EsRealContent: str
-    EsImagContent: str
-    EpRealContent: str
-    EpImagContent: str
+    resultContent: str
     simpleSim: bool
     alpha: float
     fitting: bool
@@ -106,11 +98,7 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
 def get_default_values():
     arranger = Arranger()
     return {
-        "divNo": arranger.divNo,
-        "EsRealName": arranger.Es_real_name,
-        "EsImagName": arranger.Es_imag_name,
-        "EpRealName": arranger.Ep_real_name,
-        "EpImagName": arranger.Ep_imag_name,
+        "resultFilename": arranger.resultFilename,
         "simpleSim": arranger.simpleSim,
         "alpha": np.rad2deg(arranger.alpha),
         "fitting": arranger.fitting,
@@ -124,8 +112,6 @@ def get_default_values():
 @app.post("/calculate", response_model=CalculationRespose)
 def run_calculate(request: CalculationRequest):
     arranger = Arranger()
-    arranger.setDivisionNo(request.divNo)
-    arranger.inputData(request.EsRealContent, request.EsImagContent, request.EpRealContent, request.EpImagContent)
     arranger.setSimpleSim(request.simpleSim)
     arranger.setSimPropDir(request.simPropDir)
     arranger.setInitialAlpha(np.deg2rad(request.initialAlpha))
@@ -133,7 +119,7 @@ def run_calculate(request: CalculationRequest):
     arranger.setWavelength(request.wavelength)
     arranger.setInitialPol(request.initialPol)
     arranger.setAlpha(np.deg2rad(request.alpha))
-    arranger.extractData()
+    arranger.extractData(request.resultContent)
     print(arranger.alpha, arranger.initialAlpha)
     
     print("-----Debug-----")

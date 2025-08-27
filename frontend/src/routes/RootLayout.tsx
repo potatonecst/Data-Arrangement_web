@@ -8,11 +8,7 @@ import SettingsSheet from "@/components/SettingsSheet";
 import AppLoader from "@/components/AppLoader";
 
 interface LoaderData {
-    divNo: number;
-    EsRealName: string;
-    EsImagName: string;
-    EpRealName: string;
-    EpImagName: string;
+    resultFilename: string;
     simpleSim: boolean;
     alpha: number;
     fitting: boolean;
@@ -25,11 +21,7 @@ interface LoaderData {
 
 const LoadedLayout = ({resolvedData}: {resolvedData: LoaderData}) => {
     const initialSettingsData = {
-        divNo: resolvedData.divNo,
-        EsRealName: resolvedData.EsRealName,
-        EsImagName: resolvedData.EsImagName,
-        EpRealName: resolvedData.EpRealName,
-        EpImagName: resolvedData.EpImagName,
+        resultFilename: resolvedData.resultFilename,
         simPropDir: resolvedData.simPropDir,
         fiberRadius: resolvedData.fiberRadius,
         wavelength: resolvedData.wavelength,

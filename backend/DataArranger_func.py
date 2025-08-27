@@ -1,4 +1,6 @@
+import pandas as pd
 import numpy as np
+import io
 from scipy.optimize import curve_fit
 from HybridModeSolverRevised import CalcHEMode
 from PolarizationCalculationRevised import CalcPolarizationFDTD
@@ -33,19 +35,12 @@ class Arranger:
                                 [1j, 0]])
         self.sigmaZ = np.array([[1, 0],
                                 [0, -1]])
-        self.divNo = 201 #分割数
         self.simpleSim = 0
         self.alpha = 0 #radian
         self.simPropDir = 1 #1 -> forward, 0 -> backward
         self.fitting = 0
         self.initialAlpha = 0 #radian
-        self.Es_real_name = "Es_real.txt" #for display default filename
-        self.Es_imag_name = "Es_imag.txt"
-        self.Ep_real_name = "Ep_real.txt"
-        self.Ep_imag_name = "Ep_imag.txt"
-    
-    def setDivisionNo(self, divNo): #Settings項目
-        self.divNo = divNo
+        self.resultFilename = "center_field_data.txt"
     
     def setSimpleSim(self, simpleSim):
         self.simpleSim = simpleSim
@@ -69,33 +64,14 @@ class Arranger:
     def setInitialPol(self, psi):
         self.psi = np.pi / 2 if psi == 0 else 0 #psi: 0 -> np.pi / 2, 1 -> 0
     
-    def inputData(self, EsReal_txt: str, EsImag_txt: str, EpReal_txt: str, EpImag_txt: str):
-        #1行ずつlistに格納(\nは削除)
-        self.EsFile_real = EsReal_txt.splitlines()
-        self.EsFile_imag = EsImag_txt.splitlines()
-        self.EpFile_real = EpReal_txt.splitlines()
-        self.EpFile_imag = EpImag_txt.splitlines()
-    
-    def extractData(self):
-        self.uz = np.array(str2Float(self.EpFile_real[3:3 + self.divNo]))
-        self.uy = np.array(str2Float(self.EpFile_real[5 + self.divNo:5 + 2 * self.divNo]))
-        self.xp = self.uy #モニターを通過した光が進む方向をr(z)とする座標系のx座標配列
-        self.yp = - self.uz #同じくy座標配列
-        self.xpMesh, self.ypMesh = np.meshgrid(self.xp, self.yp) #上記の配列から(x, y)座標の組を生成
-        with np.errstate(invalid="ignore"):
-            self.zpMesh = np.sqrt(1 - self.xpMesh ** 2 - self.ypMesh ** 2) #z座標を計算(半径1の球の外側ではnanになる)
-        
-        self.Theta = np.arctan2(np.sqrt(self.xpMesh ** 2 + self.ypMesh ** 2), self.zpMesh) 
-        self.Phi = np.arctan2(self.ypMesh, self.xpMesh) #arctan(self.yp / self.xp)で、self.xpとself.ypが同時に0になる時、0を返す
-        print(self.Theta, self.Phi)
-        
-        self.Es_real = np.array(str2FloatArr(divideStr(self.EsFile_real[7 + 2 * self.divNo:7 + 3 * self.divNo])))
-        self.Es_imag = np.array(str2FloatArr(divideStr(self.EsFile_imag[7 + 2 * self.divNo:7 + 3 * self.divNo])))
-        self.Es = np.array(self.Es_real + 1j * self.Es_imag).T[::-1, :]
-        
-        self.Ep_real = np.array(str2FloatArr(divideStr(self.EpFile_real[7 + 2 * self.divNo:7 + 3 * self.divNo])))
-        self.Ep_imag = np.array(str2FloatArr(divideStr(self.EpFile_imag[7 + 2 * self.divNo:7 + 3 * self.divNo])))
-        self.Ep = np.array(self.Ep_real + 1j * self.Ep_imag).T[::-1, :]
+    def extractData(self, text: str):
+        df = pd.read_csv(io.StringIO(text))
+        Ey_real = df.loc[df["Component"] == "Ey", "Real_Part"].iloc[0]
+        Ey_imag = df.loc[df["Component"] == "Ey", "Imaginary_Part"].iloc[0]
+        Ez_real = df.loc[df["Component"] == "Ez", "Real_Part"].iloc[0]
+        Ez_imag = df.loc[df["Component"] == "Ez", "Imaginary_Part"].iloc[0]
+        self.Ey = np.conjugate(Ey_real + 1j * Ey_imag) #phase convention: e^i(kz-wt) -> e^i(wt-kz) [complex conjugate]
+        self.Ez = np.conjugate(Ez_real + 1j * Ez_imag)
     
     def calcState(self, Ey, Ez):
         pureState = np.array([[Ez], 
@@ -110,16 +86,7 @@ class Arranger:
         return s1, s2, s3, I    
     
     def calcPolarization(self):
-        self.ind = int(np.ceil(self.divNo / 2)) if self.divNo % 2 == 0 else int(np.ceil(self.divNo / 2)) - 1 #原点あるいは原点に最も近い正の点を示すindex
-        print(self.ind, self.uz[self.ind])
-        self.EsPP = self.Es[self.ind, self.ind]
-        self.EpPP = self.Ep[self.ind, self.ind]
-        print(f"Es: {self.EsPP}, Ep: {self.EpPP}")
-        #self.EyPP = self.EpPP * np.cos(self.Theta[self.ind, self.ind]) * np.cos(self.Phi[self.ind, self.ind]) - self.EsPP * np.sin(self.Phi[self.ind, self.ind])
-        #self.EzPP = (self.EpPP * np.cos(self.Theta[self.ind, self.ind]) * np.sin(self.Phi[self.ind, self.ind]) + self.EsPP * np.cos(self.Phi[self.ind, self.ind]))
-        self.EyPP = -self.EpPP
-        self.EzPP = -self.EsPP
-        self.s1FDTD, self.s2FDTD, self.s3FDTD, self.IFDTD = self.calcState(self.EyPP, self.EzPP)
+        self.s1FDTD, self.s2FDTD, self.s3FDTD, self.IFDTD = self.calcState(self.Ey, self.Ez)
         
         return self.s1FDTD, self.s2FDTD, self.s3FDTD, self.theta, self.IFDTD
     

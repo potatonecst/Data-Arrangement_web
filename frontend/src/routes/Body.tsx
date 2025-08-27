@@ -23,11 +23,7 @@ interface FileContents {
     [key: string]: string;
 }
 interface Settings {
-    divNo: number;
-    EsRealName: string;
-    EsImagName: string;
-    EpRealName: string;
-    EpImagName: string;
+    resultFilename: string;
     simPropDir: boolean;
     fiberRadius: number;
     wavelength: number;
@@ -98,15 +94,12 @@ export default function Body() {
         const files = e.target.files;
         if (!files || files.length === 0) {
             return;
-        } else if (files.length < 5) {
-            alert('Required files are missing.\nCheck the folder component.');
-            return;
         }
         setIsReading(true);
         setFileContents(null);
         try{
             console.log("Step1: Folder has been selected.\n Start arranging.");
-            const requiredFilesName = [settingsValue.EsRealName, settingsValue.EsImagName, settingsValue.EpRealName, settingsValue.EpImagName]
+            const requiredFilesName = [settingsValue.resultFilename]
 
             const filesToRead = Array.from(files).filter(file => requiredFilesName.includes(file.name));
 
@@ -175,11 +168,7 @@ export default function Body() {
         }
         try {
             const payload = {
-                divNo: settingsValue.divNo,
-                EsRealContent: fileContents[settingsValue.EsRealName],
-                EsImagContent: fileContents[settingsValue.EsImagName],
-                EpRealContent: fileContents[settingsValue.EpRealName],
-                EpImagContent: fileContents[settingsValue.EpImagName],
+                resultContent: fileContents[settingsValue.resultFilename],
                 simpleSim: currentValues.simpleSim,
                 alpha: currentValues.alpha || 0,
                 fitting: currentValues.fitting,
