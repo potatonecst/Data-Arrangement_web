@@ -50,7 +50,7 @@ class Arranger:
         self.divNo = 201 #分割数
         self.simpleSim = 0
         self.alpha = 0
-        self.simPropDir = 0 #0 -> forward, 1 -> backward
+        self.simPropDir = 1 #1 -> forward, 0 -> backward
         self.fitting = 0
         self.initialAlpha = 0
         self.Es_real_name = "Es_real.txt" #for display default filename
@@ -72,6 +72,7 @@ class Arranger:
     
     def setFiberRadius(self, a):
         self.a = a * 1e-9 #a [nm]
+        self.R = self.a
     
     def setWavelength(self, lam):
         self.lam = lam * 1e-9 #lam [nm]
@@ -142,8 +143,8 @@ class Arranger:
         self.EsPP = self.Es[self.ind, self.ind]
         self.EpPP = self.Ep[self.ind, self.ind]
         print(f"Es: {self.EsPP}, Ep: {self.EpPP}")
-        self.EyPP = self.EpPP * np.cos(self.Theta[self.ind, self.ind]) * np.cos(self.Phi[self.ind, self.ind]) - self.EsPP * np.sin(self.Phi[self.ind, self.ind])
-        self.EzPP = - (self.EpPP * np.cos(self.Theta[self.ind, self.ind]) * np.sin(self.Phi[self.ind, self.ind]) + self.EsPP * np.cos(self.Phi[self.ind, self.ind]))
+        self.EyPP = np.conjugate(self.EpPP * np.cos(self.Theta[self.ind, self.ind]) * np.cos(self.Phi[self.ind, self.ind]) - self.EsPP * np.sin(self.Phi[self.ind, self.ind]))
+        self.EzPP = np.conjugate(- (self.EpPP * np.cos(self.Theta[self.ind, self.ind]) * np.sin(self.Phi[self.ind, self.ind]) + self.EsPP * np.cos(self.Phi[self.ind, self.ind])))
         self.s1FDTD, self.s2FDTD, self.s3FDTD, self.IFDTD = self.calcState(self.EyPP, self.EzPP)
         
         return self.s1FDTD, self.s2FDTD, self.s3FDTD, self.theta, self.IFDTD

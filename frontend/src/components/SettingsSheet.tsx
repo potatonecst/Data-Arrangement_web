@@ -84,11 +84,11 @@ export default function SettingsSheet({ currentValues, sendCurrentValues }: Sett
                             <RadioGroup value={temporaryValues.simPropDir ? "1" : "0"} className="flex w-full items-center justify-center" onValueChange={handleRadioChange("simPropDir")}>
                                 <div className="flex w-2/3 justify-between">
                                     <div className="flex items-center gap-1">
-                                        <RadioGroupItem value="0" id="forward" />
+                                        <RadioGroupItem value="1" id="forward" />
                                         <Label htmlFor="forward">Forward</Label>
                                     </div>
                                     <div className="flex items-center gap-1">
-                                        <RadioGroupItem value="1" id="backward" />
+                                        <RadioGroupItem value="0" id="backward" />
                                         <Label htmlFor="backward">Backward</Label>
                                     </div>
                                 </div>
