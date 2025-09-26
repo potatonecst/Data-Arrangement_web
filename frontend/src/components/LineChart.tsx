@@ -68,6 +68,22 @@ export default function LineChart({ data, saveFormat }: PlotProps) {
             filename: "newplot",
         })
     }
+    const handleDownloadIntensityData = () => {
+        const dataToSave = {
+            theta: data.fdtd.theta,
+            intensity: data.fdtd.intensity,
+        }
+        const jsonString = JSON.stringify(dataToSave, null, 2);
+        const blob = new Blob([jsonString], {type: "application/json"});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "Intensity_Data.json"
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
 
     const containerRef = useRef<HTMLDivElement>(null);
     const [layout, setLayout] = useState<Partial<Layout>>({
@@ -136,7 +152,10 @@ export default function LineChart({ data, saveFormat }: PlotProps) {
                     modeBarButtonsToRemove: ['toImage'],
                 }}
             />
-            <Button onClick={() => handleDownloadLineChart(saveFormat)}>Download Image</Button>
+            <div className="flex w-full gap-10 items-center justify-center">
+                <Button onClick={() => handleDownloadLineChart(saveFormat)}>Download Image</Button>
+                <Button onClick={handleDownloadIntensityData}>Download Intensity Data</Button>
+            </div>
         </div>
     )
 }

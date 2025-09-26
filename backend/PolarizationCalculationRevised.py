@@ -24,9 +24,9 @@ def CalcPolarization(a, nco, ncl, lam, n, l, psi, R, alpha, theta, faxis, propDi
     EInJV = np.stack([EScat[2, :], EScat[1, :]]).transpose()[:, np.newaxis, ..., np.newaxis] #入射電場のJones Vector
 
     qwpZJM = np.array([[1, 0], 
-                       [0, 1j]]) #Jones matrix of qwp (z-axis: fast)
-    qwpYJM = np.array([[1, 0],
-                       [0, -1j]]) #Jones matrix of qwp (y-axis: fast)
+                       [0, -1j]]) #Jones matrix of qwp (z-axis: fast)
+    qwpYJM = np.array([[1j, 0],
+                       [0, 1]]) #Jones matrix of qwp (y-axis: fast)
 
     if faxis == 0:
         qwpJM = qwpYJM #fast軸の設定(qwpYJM -> y軸)
@@ -54,9 +54,9 @@ def CalcPolarizationFDTD(Ey, Ez, theta, faxis):
     EInJV = EScat.transpose()[:, np.newaxis, ..., np.newaxis] #入射電場のJones Vector
 
     qwpZJM = np.array([[1, 0], 
-                       [0, 1j]]) #Jones matrix of qwp (z-axis: fast)
-    qwpYJM = np.array([[1, 0],
-                       [0, -1j]]) #Jones matrix of qwp (y-axis: fast)
+                       [0, -1j]]) #Jones matrix of qwp (z-axis: fast)
+    qwpYJM = np.array([[1j, 0],
+                       [0, 1]]) #Jones matrix of qwp (y-axis: fast)
 
     if faxis == 0:
         qwpJM = qwpYJM #fast軸の設定(qwpYJM -> y軸)
@@ -97,7 +97,7 @@ if __name__ == "__main__":
     alpha = np.pi/2.
     theta = np.linspace(0.0, 2*np.pi, 1000) #angle of QWP
     faxis = 0 #fast axis -> y
-    propDir = 0 #propagation direction: 0 -> plus z-dir, 1 -> minus z-dir
+    propDir = 1 #propagation direction: 1 -> plus z-dir, 0 -> minus z-dir
     #----End Calculate Conditions----
 
     I = CalcPolarization(a, nco, ncl, lam, n, l, psi, R, alpha, theta, faxis, propDir)
