@@ -39,7 +39,7 @@ const LoadedLayout = ({resolvedData}: {resolvedData: LoaderData}) => {
             <header className="">
                 <div className="md:flex font-melete items-baseline gap-2">
                     <h1 className="font-bold text-sm md:text-xl lg:text-2xl">Data Arranger for FDTD</h1>
-                    <p className="text-[10px] md:text-sm whitespace-nowrap">ver 0.3.0</p>
+                    <p className="text-[10px] md:text-sm whitespace-nowrap">ver 0.4.0</p>
                 </div>
                 <SettingsSheet currentValues={settingsValue} sendCurrentValues={setSettingsValue} />
             </header>
