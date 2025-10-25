@@ -1,3 +1,5 @@
+print("--- main.py execution START ---")
+
 import os
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, Request, status
@@ -7,9 +9,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import Optional, List
 import json
-import numpy as np
 
-from DataArranger_func import Arranger
+print("--- import finished ---")
 
 class ArrangementSettings(BaseModel):
     resultFilename: str
@@ -63,8 +64,10 @@ class CalculationRespose(BaseModel):
     fitting: Optional[FittingResult] = None
 
 load_dotenv()
+print("--- load_dotenv() finished ---")
 
 app = FastAPI()
+print("--- FastAPI() app created ---")
 
 origins = os.getenv("CORS_ORIGINS", "").split(",")
 
@@ -80,6 +83,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+print("--- Middleware configured ---")
 
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
@@ -96,6 +100,9 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
 
 @app.get("/default-values")
 def get_default_values():
+    import numpy as np
+    from DataArranger_func import Arranger
+    
     arranger = Arranger()
     return {
         "resultFilename": arranger.resultFilename,
@@ -111,6 +118,8 @@ def get_default_values():
 
 @app.post("/calculate", response_model=CalculationRespose)
 def run_calculate(request: CalculationRequest):
+    import numpy as np
+    from DataArranger_func import Arranger
     arranger = Arranger()
     arranger.setSimpleSim(request.simpleSim)
     arranger.setSimPropDir(request.simPropDir)

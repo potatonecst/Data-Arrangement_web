@@ -73,16 +73,16 @@ export default function LineChart({ data, saveFormat }: PlotProps) {
             theta: data.fdtd.theta,
             intensity: data.fdtd.intensity,
         }
-        const jsonString = JSON.stringify(dataToSave, null, 2);
-        const blob = new Blob([jsonString], {type: "application/json"});
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = "Intensity_Data.json"
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
+        const jsonString = JSON.stringify(dataToSave, null, 2); //JSON.stringify(value, replacer, space)
+        const blob = new Blob([jsonString], {type: "application/json"}); //Blobコンストラクタ。valueは配列。MIMEタイプ="application/json"
+        const url = URL.createObjectURL(blob); //blobの一時的なurlを作成
+        const a = document.createElement("a"); //aタグを作成
+        a.href = url; //href属性を設定
+        a.download = "Intensity_Data.json" //download属性を設定
+        document.body.appendChild(a); //ページにaタグを追加
+        a.click(); //aタグをクリック
+        document.body.removeChild(a); //ページからaタグを削除
+        URL.revokeObjectURL(url); //urlを無効化
     }
 
     const containerRef = useRef<HTMLDivElement>(null);
@@ -117,11 +117,9 @@ export default function LineChart({ data, saveFormat }: PlotProps) {
         const handleResize = () => {
             if (containerRef.current) {
                 const newWidth = containerRef.current.offsetWidth;
-                //const newHeight = containerRef.current.offsetHeight;
                 setLayout(prev => ({
                     ...prev,
                     width: newWidth,
-                    //height: newHeight
                 }));
             }
         }

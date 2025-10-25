@@ -1,0 +1,78 @@
+# ===============================
+# Git
+# ===============================
+.git
+.gitignore
+
+# ===============================
+# Python
+# ===============================
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pkl
+*.egg-info/
+*.egg
+*.whl
+*.so
+*.log
+.env
+.env.*
+.venv/
+venv/
+pip-wheel-metadata/
+build/
+dist/
+
+# ===============================
+# 開発関連
+# ===============================
+.vscode/
+.idea/
+*.swp
+*.bak
+*.tmp
+*.orig
+
+# ===============================
+# データ・出力
+# ===============================
+data/
+datasets/
+outputs/
+logs/
+tmp/
+test/
+tests/
+__tests__/
+notebooks/
+examples/
+*.db
+*.sqlite
+*.csv
+*.npy
+*.npz
+*.parquet
+*.h5
+*.pt
+*.pth
+
+# ===============================
+# Docker自身
+# ===============================
+Dockerfile
+.dockerignore
+requirements-dev.txt
+compose.yaml
+docker-compose.yaml
+
+# ===============================
+# Node / フロントエンド
+# ===============================
+node_modules/
+frontend/
+package.json
+package-lock.json
+yarn.lock
+pnpm-lock.yaml

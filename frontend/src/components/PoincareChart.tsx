@@ -151,6 +151,23 @@ export default function PoincareChart({ data, saveFormat }: PlotProps) {
             filename: "newplot"
         });
     };
+    const handleDownloadStokesParameters = () => {
+        const dataToSave = {
+            S1: data.fdtd.s1,
+            S2: data.fdtd.s2,
+            S3: data.fdtd.s3,
+        }
+        const jsonString = JSON.stringify(dataToSave, null, 2); //JSON.stringify(value, replacer, space)
+        const blob = new Blob([jsonString], {type: "application/json"}); //Blobコンストラクタ。valueは配列。MIMEタイプ="application/json"
+        const url = URL.createObjectURL(blob); //blobの一時的なurlを作成
+        const a = document.createElement("a"); //aタグを作成
+        a.href = url; //href属性を設定
+        a.download = "Stokes_Parameters_FDTD.json"; //download属性を設定
+        document.body.appendChild(a); //ページにaタグを追加
+        a.click(); //aタグをクリック
+        document.body.removeChild(a); //ページからaタグを削除
+        URL.revokeObjectURL(url); //urlを無効化
+    }
 
     const containerRef = useRef<HTMLDivElement>(null);
     const [layout, setLayout] = useState<Partial<Layout>>({
@@ -185,11 +202,9 @@ export default function PoincareChart({ data, saveFormat }: PlotProps) {
         const handleResize = () => {
             if (containerRef.current) {
                 const newWidth = containerRef.current.offsetWidth;
-                //const newHeight = containerRef.current.offsetHeight;
                 setLayout(prev => ({
                     ...prev,
                     width: newWidth,
-                    //height: newHeight
                 }));
             }
         }
@@ -225,7 +240,10 @@ export default function PoincareChart({ data, saveFormat }: PlotProps) {
                     modeBarButtonsToRemove: ['toImage'],
                 }}
             />
-            <Button onClick={() => handleDownloadPoincareChart(saveFormat)}>Download Image</Button>
+            <div className="flex w-full gap-10 items-center justify-center">
+                <Button onClick={() => handleDownloadPoincareChart(saveFormat)}>Download Image</Button>
+                <Button onClick={handleDownloadStokesParameters}>Download Stokes Parameters (Normalized)</Button>
+            </div>
         </div>
     )
 }
