@@ -29,7 +29,6 @@ RUN find /usr/local/lib/python3.13 -type f -name "*.so" -exec strip --strip-unne
     && find /usr/local/lib/python3.13 -type d \( -name "__pycache__" -o -name "tests" -o -name "test" \) -exec rm -rf {} + \
     && rm -rf /root/.cache /tmp/*
 
-COPY --from=public.ecr.aws/awsguru/aws-lambda-adapter:0.8.1 /lambda-adapter /opt/bin/
 COPY . .
 
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8080"]

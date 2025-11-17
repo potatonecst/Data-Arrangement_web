@@ -7,10 +7,10 @@ import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
+import { Spinner } from '@/components/ui/spinner';
 
 import { IconFolderSearch } from '@tabler/icons-react';
 import { IconPlayerPlayFilled } from '@tabler/icons-react';
-import { Loader2 } from "lucide-react";
 
 import { readFileAsText } from '@/lib/ReadFileAsText';
 import { API_BASE_URL } from '@/config';
@@ -252,7 +252,9 @@ export default function Body() {
                     <Separator orientation="vertical" />
                 </div>
                 <div className='basis-4xs p-1 place-content-center'>
-                    <Button className='' onClick={handleExecute} disabled={isReading || !fileContents || isCalculating}>{isReading || isCalculating ? <Loader2 className='animate-spin' /> : <IconPlayerPlayFilled />}<div className='md:hidden lg:block'>Start</div></Button>
+                    <Button className='' onClick={handleExecute} disabled={isReading || !fileContents || isCalculating}>
+                        <div className="inline-block h-4 w-4">{isReading || isCalculating ? <Spinner className='w-full h-full' /> : <IconPlayerPlayFilled />}</div>
+                        <div className='md:hidden lg:block'>Start</div></Button>
                 </div>
             </div>
             <Separator className='mt-1' />

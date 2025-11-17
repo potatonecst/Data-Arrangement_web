@@ -61,7 +61,7 @@ export default function SettingsSheet({ currentValues, sendCurrentValues }: Sett
                     </Button>
                 </SheetTrigger>
             </div>
-            <SheetContent className="flex h-screen flex-col p-0">
+            <SheetContent className="flex h-full flex-col p-0">
                 <SheetHeader>
                     <SheetTitle>Settings</SheetTitle>
                     <SheetDescription>
